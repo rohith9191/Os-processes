@@ -1,0 +1,52 @@
+The OS Performance Monitor is a comprehensive web-based solution designed to track, analyze, and predict system performance metrics 
+such as CPU and memory usage. This tool provides real-time insights into the system's performance and identifies patterns using 
+historical data analysis. By visualizing trends, users can predict potential performance issues and take preventive measures. The
+application is built using Python's Flask framework to manage backend processes and ensure smooth data handling. On the frontend, 
+Bootstrap is integrated to create a clean, responsive, and user-friendly interface. The tool features an intuitive dashboard that 
+presents performance data in an organized manner, enabling users to monitor and understand resource utilization efficiently. 
+In addition to visualization, the system identifies performance bottlenecks and provides optimization suggestions for improving overall 
+efficiency. By combining data analysis, prediction capabilities, and user- centric design, this application is ideal for system 
+administrators and developers seeking proactive monitoring solutions.
+
+2. Module-Wise Breakdown
+Backend Module (app.py)
+• Data Collection: Uses psutil to fetch CPU and
+Memory usage.
+• Time Formatting: Converts system uptime into
+readable units (Seconds, Minutes, Hours).
+• Past Metrics: Generates historical data for the last
+25 intervals.
+• Future Predictions: Uses Linear Regression to
+forecast CPU/Memory trends.
+• Bottleneck Detection: Identifies critical thresholds
+(e.g., CPU > 90%).
+• Optimization Suggestions: Recommends actions
+based on current/future metrics.
+Frontend Module (index.html)
+• Real-Time Tables: Displays historical and predicted
+data in Bootstrap-styled tables.
+• Interactive Settings: Allows users to adjust
+prediction parameters (hours, intervals).
+• Alert System: Visual warnings for bottlenecks
+(Critical/Warning/Notice).
+• Responsive Design: Works on all device sizes.
+3. Functionalities
+• Real-Time Monitoring: Tracks CPU and Memory
+usage.
+• Trend Prediction: Forecasts future usage with
+Linear Regression.
+• Bottleneck Alerts: Flags performance issues with
+severity levels.
+• Optimization Tips: Suggests actionable
+improvements.
+• User Customization: Adjustable prediction period
+and intervals.
+4. Technology Used
+Programming Languages:
+• Python (Flask, psutil, scikit-learn, pandas)
+• HTML/CSS/JavaScript (Bootstrap)
+Libraries and Tools:
+• psutil: System metrics collection.
+• scikit-learn: Linear Regression for predictions.
+• pandas: Data manipulation.
+• Bootstrap 5: Frontend styling.

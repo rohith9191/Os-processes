@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OS Performance Monitor</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+        }
+        .container {
+            max-width: 1200px;
+        }
+        .card {
+            margin-bottom: 25px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border: none;
+            border-radius: 8px;
+        }
+        .card-header {
+            font-weight: 600;
+            border-radius: 8px 8px 0 0 !important;
+        }
+        .settings-panel {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .alert {
+            border-left: 4px solid;
+            padding: 15px;
+            margin-bottom: 10px;
+        }
+        .alert-danger {
+            border-left-color: #dc3545;
+            background-color: #f8d7da;
+        }
+        .alert-warning {
+            border-left-color: #fd7e14;
+            background-color: #fff3cd;
+        }
+        .alert-info {
+            border-left-color: #0dcaf0;
+            background-color: #d1ecf1;
+        }
+        .alert-success {
+            border-left-color: #198754;
+            background-color: #d4edda;
+        }
+        .alert-secondary {
+            border-left-color: #6c757d;
+            background-color: #e2e3e5;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #dee2e6;
+        }
+        th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        .table-responsive {
+            overflow-x: auto;
+            border-radius: 8px;
+        }
+        h1 {
+            color: #0d6efd;
+            margin: 25px 0;
+            font-weight: 700;
+            text-align: center;
+        }
+        h4 {
+            font-weight: 600;
+        }
+        h5.section-header {
+            color: #495057;
+            margin: 20px 0 10px 0;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .form-text {
+            font-size: 0.85rem;
+            color: #6c757d;
+        }
+        .bi {
+            margin-right: 10px;
+            font-size: 1.1em;
+        }
+        .timestamp {
+            font-size: 0.8rem;
+            color: #6c757d;
+            text-align: right;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container py-4">
+        <h1 class="mb-4">🖥️ OS Performance Monitor</h1>
+        <div class="timestamp">Last updated: {{ now }}</div>
+        
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">🔍 System Performance Analysis (Last 25 Intervals)</h4>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    {{ past_table|safe }}
+                </div>
+            </div>
+        </div>
+        
+        <div class="settings-panel">
+            <h4 class="mb-3">📊 Prediction Settings</h4>
+            <form method="POST" class="row g-3">
+                <div class="col-md-6">
+                    <label for="total_period_hours" class="form-label">Prediction Period (Hours):</label>
+                    <input type="number" class="form-control" id="total_period_hours" 
+                           name="total_period_hours" min="0.25" max="24" step="0.25" 
+                           value="{{ total_period_hours }}">
+                    <div class="form-text">Enter how far into the future to predict (0.25 = 15min, 1 = 60min)</div>
+                </div>
+                <div class="col-md-6">
+                    <label for="interval_min" class="form-label">Interval Duration (Minutes):</label>
+                    <input type="number" class="form-control" id="interval_min" 
+                           name="interval_min" min="1" max="60" value="{{ interval_min }}">
+                    <div class="form-text">Time between each prediction point</div>
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary px-4">Update Prediction</button>
+                </div>
+            </form>
+        </div>
+        
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h4 class="mb-0">📊 Predicted Future Performance</h4>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    {{ future_table|safe }}
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header bg-danger text-white">
+                <h4 class="mb-0">⚠️ Performance Bottleneck Analysis</h4>
+            </div>
+            <div class="card-body">
+                {% for issue in bottlenecks %}
+                    {% if '=== CURRENT SYSTEM STATE ===' in issue %}
+                        <h5 class="section-header"><i class="bi bi-pc-display"></i> Current System State</h5>
+                    {% elif '=== FUTURE PREDICTIONS ===' in issue %}
+                        <h5 class="section-header"><i class="bi bi-graph-up"></i> Future Predictions</h5>
+                    {% elif '=== SUSTAINED PATTERNS ===' in issue %}
+                        <h5 class="section-header"><i class="bi bi-arrow-repeat"></i> Sustained Patterns</h5>
+                    {% elif '🚨 CURRENT' in issue %}
+                        <div class="alert alert-danger">
+                            <i class="bi bi-exclamation-triangle-fill"></i> {{ issue }}
+                        </div>
+                    {% elif '🔮 FUTURE' in issue %}
+                        <div class="alert alert-warning">
+                            <i class="bi bi-graph-up"></i> {{ issue }}
+                        </div>
+                    {% elif '⚠️ SUSTAINED' in issue %}
+                        <div class="alert alert-info">
+                            <i class="bi bi-arrow-repeat"></i> {{ issue }}
+                        </div>
+                    {% else %}
+                        <div class="alert alert-success">
+                            <i class="bi bi-check-circle-fill"></i> {{ issue }}
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header bg-warning text-dark">
+                <h4 class="mb-0">🚀 Performance Optimization Plan</h4>
+            </div>
+            <div class="card-body">
+                {% for opt in optimizations %}
+                    {% if '=== IMMEDIATE ACTIONS ===' in opt %}
+                        <h5 class="section-header"><i class="bi bi-lightning-charge-fill"></i> Immediate Actions</h5>
+                    {% elif '=== FUTURE PLANNING ===' in opt %}
+                        <h5 class="section-header"><i class="bi bi-calendar-check"></i> Future Planning</h5>
+                    {% elif '=== GENERAL ADVICE ===' in opt %}
+                        <h5 class="section-header"><i class="bi bi-info-circle-fill"></i> General Advice</h5>
+                    {% elif 'CRITICAL' in opt %}
+                        <div class="alert alert-danger">
+                            <i class="bi bi-exclamation-octagon-fill"></i> {{ opt }}
+                        </div>
+                    {% elif 'WARNING' in opt %}
+                        <div class="alert alert-warning">
+                            <i class="bi bi-exclamation-triangle-fill"></i> {{ opt }}
+                        </div>
+                    {% elif 'NOTICE' in opt %}
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle-fill"></i> {{ opt }}
+                        </div>
+                    {% elif 'FUTURE' in opt %}
+                        <div class="alert alert-secondary">
+                            <i class="bi bi-lightbulb-fill"></i> {{ opt }}
+                        </div>
+                    {% else %}
+                        <div class="alert alert-success">
+                            <i class="bi bi-check-circle-fill"></i> {{ opt }}
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
